@@ -1,0 +1,48 @@
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.43.1
+    container_name: prometheus
+    hostname: prometheus
+    restart: unless-stopped
+    user: root
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=45d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: grafana
+    hostname: grafana
+    restart: unless-stopped
+    env_file: .env
+    user: root
+    volumes:
+      - ./grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+
+  pushgateway:
+    image: prom/pushgateway:v1.5.1
+    container_name: pushgateway
+    hostname: pushgateway
+    restart: unless-stopped
+    command:
+      - '--web.enable-admin-api'    
+    ports:
+      - "9091:9091"
+
+networks:
+  default:
+    name: $DOCKER_MY_NETWORK
+    external: true
